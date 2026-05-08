@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MALUB Restaurant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+
+    <!-- Review -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: #f9fafb; }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 8px;
+            justify-content: center;
+        }
+        .star-rating input { display: none; }
+        .star-rating label {
+            font-size: 32px;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        .review-card {
+            border-left: 4px solid #16a34a;
+            background: #f9fafb;
+            border-radius: 0 12px 12px 0;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+        .review-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(4px);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1f2937;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 100;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+    </style>
+
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #14532d; --accent: #ffffff; }
+
+        /* Dark mode smooth transition */
+        *, *::before, *::after { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease; }
+        img, svg, button { transition: none !important; }
+
+        /* Navbar */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInDown 0.4s ease-out forwards; }
+        .nav-link { position: relative; overflow: hidden; }
+        .nav-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background-color: currentColor; transform: scaleX(0); transform-origin: right; transition: transform 0.3s ease-out; }
+        .nav-link:hover::after { transform: scaleX(1); transform-origin: left; }
+        .mobile-menu { transition: transform 0.3s ease-out, opacity 0.3s ease-out; }
+
+        /* Hero */
+        @keyframes float { 0%, 100% { transform: translateY(0px) rotate(-5deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
+        .float-shoe { animation: float 3s ease-in-out infinite; }
+
+        /* Cards */
+        .product-card { transition: transform 0.18s ease, box-shadow 0.18s ease !important; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+        .dark .product-card:hover { box-shadow: 0 12px 28px rgba(0,0,0,0.4); }
+        .arrow { display: inline-block; transition: transform 0.3s ease; }
+
+        /* Dark mode toggle button */
+        .toggle-track { width: 52px; height: 28px; background: #d1d5db; border-radius: 9999px; position: relative; cursor: pointer; transition: background 0.3s ease !important; }
+        .dark .toggle-track { background: #16a34a; }
+        .toggle-thumb { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform 0.3s ease !important; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        .dark .toggle-thumb { transform: translateX(24px); }
+        .toggle-icon { font-size: 12px; line-height: 1; }
+
+        /* Hamburger animation */
+        .ham-line { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; transition: transform 0.3s ease, opacity 0.3s ease !important; }
+        .ham-open .ham-line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .ham-open .ham-line:nth-child(2) { opacity: 0; }
+        .ham-open .ham-line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+        /* Mobile menu slide */
+        #mobileMenu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1) !important; }
+        #mobileMenu.open { max-height: 500px; }
+
+        /* Section card hover */
+        .category-card { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .category-card:hover { transform: translateY(-2px); }
+
+        /* Scrollbar dark */
+        .dark ::-webkit-scrollbar-track { background: #1f2937; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 transition-colors duration-300 loading">
+
+    <!-- ── NAVBAR ── -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-green-200 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-2 group">
+                <span class="text-2xl font-black text-green-600 dark:text-green-400 tracking-tight group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">MALUB</span>
+                <span class="hidden sm:inline text-xs font-medium text-gray-400 dark:text-gray-500 tracking-widest uppercase mt-1">Restaurant</span>
+            </a>
+
+            <!-- Desktop Links -->
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="./homePage.html" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors">Home</a>
+                <a href="./menuPage.html" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors">Menu</a>
+                <a href="./aboutPage.html" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors">About Us</a>
+                <a href="./services.html" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors">Services</a>
+                <a href="./contactPage.html" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors">Contact</a>
+            </div>
+
+            <!-- Desktop Right -->
+            <div class="hidden md:flex items-center gap-3">
+                <!-- Dark Mode Toggle -->
+                <button id="darkModeToggle" aria-label="Toggle dark mode" onclick="toggleDark()">
+                    <div class="toggle-track">
+                        <div class="toggle-thumb">
+                            <span class="toggle-icon" id="toggleIcon">☀️</span>
+                        </div>
+                    </div>
+                </button>
+                <a href="./sign_in.html" class="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors shadow-sm">Sign In</a>
+            </div>
+
+            <!-- Mobile Right: toggle + hamburger -->
+            <div class="flex md:hidden items-center gap-3">
+                <button aria-label="Toggle dark mode" onclick="toggleDark()">
+                    <div class="toggle-track">
+                        <div class="toggle-thumb">
+                            <span class="toggle-icon" id="toggleIconMobile">☀️</span>
+                        </div>
+                    </div>
+                </button>
+                <button id="mobileMenuButton" class="flex flex-col gap-1.5 p-1.5 text-gray-700 dark:text-gray-200 focus:outline-none" aria-label="Open menu">
+                    <span class="ham-line"></span>
+                    <span class="ham-line"></span>
+                    <span class="ham-line"></span>
+                </button>
+            </div>
+
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 py-3 space-y-1">
+                <a href="./homePage.html" class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-xl transition-colors">🏠 Home</a>
+                <a href="./menuPage.html" class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-xl transition-colors">🍽️ Menu</a>
+                <a href="./aboutPage.html" class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-xl transition-colors">👨‍🍳 About Us</a>
+                <a href="./services.html" class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-xl transition-colors">🛎️ Services</a>
+                <a href="./contactPage.html" class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-xl transition-colors">📞 Contact</a>
+                <div class="pt-2 pb-1">
+                    <a href="./sign_in.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-3 rounded-xl transition-colors">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── HERO SECTION ── -->
+    <section class="relative min-h-screen overflow-hidden bg-green-100 dark:bg-black transition-colors duration-300 pt-16">
+        <!-- Blobs -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-40 -right-40 w-96 h-96 bg-green-400 dark:bg-green-700 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-20 animate-pulse"></div>
+            <div class="absolute top-40 left-1/3 w-96 h-96 bg-yellow-300 dark:bg-yellow-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse" style="animation-delay:2s"></div>
+            <div class="absolute bottom-20 -left-20 w-72 h-72 bg-emerald-400 dark:bg-emerald-700 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-20 animate-pulse" style="animation-delay:1s"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-16 py-16 sm:py-20 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-12">
+            <!-- Text -->
+            <div class="lg:w-1/2 text-center lg:text-left space-y-7" data-aos="fade-up-right">
+                <h1 class="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-none">
+                    <span class="block text-gray-900 dark:text-white">FOOD IS</span>
+                    <span class="block text-green-600 dark:text-green-400 italic" style="font-family:'Cormorant Garamond',serif">ART</span>
+                    <span class="block text-gray-900 dark:text-white text-4xl sm:text-5xl lg:text-6xl">YOU CAN TASTE</span>
+                </h1>
+                <p class="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                    Welcome to MALUB Restaurant — where we serve
+                    <span class="text-yellow-600 dark:text-yellow-400 font-bold">delicious food, quality service, and a cozy place</span>
+                    to enjoy every meal.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                    <a href="./services.html" class="inline-flex items-center justify-center gap-2 px-7 py-4 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white rounded-full font-bold text-base shadow-lg hover:shadow-green-500/30 transform hover:scale-105 transition-all duration-200">
+                        Reserve a Table
+                    </a>
+                    <a href="./menuPage.html" class="inline-flex items-center justify-center gap-2 px-7 py-4 border-2 border-green-600 dark:border-green-400 text-green-700 dark:text-green-300 bg-transparent hover:bg-green-600 hover:text-white dark:hover:bg-green-400 dark:hover:text-gray-900 rounded-full font-bold text-base transform hover:scale-105 transition-all duration-200">
+                        Explore Menu
+                    </a>
+                </div>
+            </div>
+
+
+            <!-- Image Card -->
+            <div class="lg:w-1/2 relative w-full max-w-sm sm:max-w-md mx-auto" data-aos="fade-up-left">
+                <div class="float-shoe relative z-10 bg-gradient-to-br from-green-400 to-emerald-600 p-1.5 rounded-3xl transform rotate-6 hover:rotate-0 transition-all duration-500 shadow-2xl shadow-green-500/30">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-1 sm:p-1">
+                        <img src="../asset/header_food.gif" alt="Khmer Food" class="w-full h-60 sm:h-60 object-cover rounded-xl">
+                    </div>
+                </div>
+                <div class="absolute -bottom-4 -left-2 sm:-left-6 bg-yellow-400 dark:bg-yellow-500 text-gray-900 px-4 sm:px-5 py-2 sm:py-3 rounded-2xl font-black text-base sm:text-lg shadow-xl transform rotate-6 hover:rotate-0 transition-all duration-300 z-20">
+                    Khmer Food
+                </div>
+                <div class="absolute -top-4 -right-2 sm:-right-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white px-3 sm:px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm shadow-xl transform -rotate-6 hover:rotate-0 transition-all duration-300 z-20 flex items-center gap-1">
+                    Good Services
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Ah nis carousel yk pi tailwind flex hx oy ai kea tix tux -->
+    <section class="bg-green-100 dark:bg-gray-950 py-20 px-4 transition-colors duration-300">
+  <div data-aos="zoom-in-up" class="max-w-4xl mx-auto">
+
+    <!-- Progress bar -->
+    <div class="h-1 bg-white/30 rounded-full overflow-hidden mb-5">
+      <div id="pgbar" class="h-full w-1/3 bg-gradient-to-r from-green-600 to-green-400 rounded-full transition-all duration-500"></div>
+    </div>
+
+    <!-- Carousel -->
+    <div class="relative rounded-2xl overflow-hidden shadow-2xl" style="height:440px;">
+
+      <!-- Slide 1 -->
+      <div id="s0" class="carousel-slide absolute inset-0 opacity-100 transition-opacity duration-700">
+        <img src="../asset/image_member/photo_2026-04-09_07-39-14.jpg" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-8">
+          <h3 class="text-white text-2xl sm:text-3xl font-black mb-2">Our Restaurant</h3>
+          <p class="text-white/80 text-sm sm:text-base max-w-lg">A warm and welcoming place for every occasion.</p>
+        </div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div id="s1" class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-700">
+        <img src="https://i.pinimg.com/1200x/c1/48/fe/c148fe354571c90b73a71d079d5ce30f.jpg" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-8">
+          <h3 class="text-white text-2xl sm:text-3xl font-black mb-2">Delicious Food</h3>
+          <p class="text-white/80 text-sm sm:text-base max-w-lg">Fresh ingredients crafted with passion and care.</p>
+        </div>
+      </div>
+
+      <!-- Slide 3 -->
+      <div id="s2" class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-700">
+        <img src="https://i.pinimg.com/736x/22/8f/28/228f28f6a88c2232fc7136f105135bb4.jpg" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-8">
+          <h3 class="text-white text-2xl sm:text-3xl font-black mb-2">Good Services</h3>
+          <p class="text-white/80 text-sm sm:text-base max-w-lg">Staff who treat every guest with care and attention.</p>
+        </div>
+      </div>
+
+      <!-- Nav buttons -->
+      <button onclick="move(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/20 backdrop-blur border border-white/30 flex items-center justify-center hover:bg-white/35 transition z-10">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button onclick="move(1)" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/20 backdrop-blur border border-white/30 flex items-center justify-center hover:bg-white/35 transition z-10">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- Dot indicators -->
+    <div class="flex justify-center gap-2 mt-4" id="dots">
+      <button onclick="goTo(0)" class="carousel-dot h-1.5 w-10 rounded-full bg-green-500 transition-all duration-300"></button>
+      <button onclick="goTo(1)" class="carousel-dot h-1.5 w-7 rounded-full bg-green-300 transition-all duration-300"></button>
+      <button onclick="goTo(2)" class="carousel-dot h-1.5 w-7 rounded-full bg-green-300 transition-all duration-300"></button>
+    </div>
+
+    <!-- Why section -->
+    <div class="mt-10 text-center">
+      <p class="text-2xl font-black text-green-900 dark:text-white mb-1" style="font-family:'Cormorant Garamond',serif;font-style:italic;">Why Choose MALUB Restaurant?</p>
+      <div class="w-12 h-1 bg-gradient-to-r from-green-500 to-green-300 rounded-full mx-auto mb-5"></div>
+      <p class="text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto">
+        MALUB Restaurant is a perfect place for anyone looking for a comfortable and enjoyable dining experience.
+        The restaurant is known for its <span class="text-green-700 dark:text-green-400 font-bold">good service</span>,
+        where staff always treat customers with care and attention. The food is
+        <span class="text-green-700 dark:text-green-400 font-bold">clean, fresh, and prepared with high quality ingredients</span>,
+        making every dish safe and delicious. Choosing MALUB means choosing great taste, cleanliness, and a place where you feel truly valued.
+      </p>
+    </div>
+
+  </div>
+  </section>
+
+    <!-- ── MENU SECTION ── -->
+    <section class="bg-green-100 dark:bg-gray-950 py-20 px-4 transition-colors duration-300">
+        <div class="text-center mb-16" data-aos="zoom-in-down">
+            <span class="inline-block bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold px-4 py-2 rounded-full border border-green-200 dark:border-green-700 mb-4 tracking-widest uppercase">What We Serve</span>
+            <h1 class="text-6xl sm:text-7xl lg:text-8xl font-black text-gray-900 dark:text-white tracking-tight">Our <span class="text-green-600 dark:text-green-400 italic" style="font-family:'Cormorant Garamond',serif">Menu</span></h1>
+            <p class="text-gray-400 dark:text-gray-500 font-light mt-3 text-sm tracking-wide">Fresh ingredients, crafted with care</p>
+        </div>
+
+        <!-- <div class="max-w-6xl mx-auto space-y-6"> -->
+
+            <!-- FOOD -->
+            <!-- <div class="category-card bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm dark:shadow-none" data-aos="fade-right" data-aos-once="true" data-aos-offset="0">
+                <div class="flex items-center gap-4 px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-gray-800/80 dark:to-gray-800/50">
+                    <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">🥘</div>
+                    <div class="flex flex-col" style="gap:2px">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white" style="font-family:'Cormorant Garamond',serif;line-height:1.2;margin:0;">Food</h2>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 font-medium" style="line-height:1.2;margin:0;">9 items available</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-300 text-xs font-bold px-3 py-1 rounded-full">Main</span>
+                    </div>
+                </div>
+                <div id="pizza-grid" class="grid gap-4 p-6" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/1200x/cf/14/38/cf1438a6009939b9c2c87a4794a191c9.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">អាម៉ុកសាច់ត្រី</p><p class="text-sm font-bold text-orange-500 mt-1">$7.50</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/736x/6d/43/82/6d4382495c930a0fed1ad94fa5391eb8.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">ប្រហុកអាំងជ្រុញ</p><p class="text-sm font-bold text-orange-500 mt-1">$8.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/1200x/7d/85/55/7d8555b48a078b81d8c220574be5d78e.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">នំបញ្ចុកសម្លប្រហើរ</p><p class="text-sm font-bold text-orange-500 mt-1">$6.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/736x/44/02/c5/4402c5eb72f04058f7d383244c99899c.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Pasta គ្រឿងសមុទ្រ</p><p class="text-sm font-bold text-orange-500 mt-1">$9.50</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/2b/67/ad/2b67ad0c4b024d10cda5a5941848dd68.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">ត្រីបំពង់ទឹកត្រីផ្អែម</p><p class="text-sm font-bold text-orange-500 mt-1">$9.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/d5/d3/34/d5d334219d673ce92d988dab4516958b.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Steak សាច់គោ</p><p class="text-sm font-bold text-orange-500 mt-1">$15.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/5d/73/19/5d731959f570b4623ac8801ad7bb497b.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">តុងយុាំបង្កង</p><p class="text-sm font-bold text-orange-500 mt-1">$10.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/f6/9d/db/f69ddb7d89b3a70313ef7db21c871b34.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">ម្ជូរគ្រឿងពោះគោ</p><p class="text-sm font-bold text-orange-500 mt-1">$7.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/f0/81/3d/f0813d77d87d231f59654e7152c7f884.jpg" alt="food" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">មាន់ដុតកូកា</p><p class="text-sm font-bold text-orange-500 mt-1">$12.00</p></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 px-6 pb-5">
+                    <div class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+                    <button onclick="toggleCategory(this, 'pizza-grid')" class="flex items-center gap-2 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 text-xs font-bold rounded-full px-5 py-2 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                        <span class="label">See all 9 items</span><span class="arrow text-xs">▼</span>
+                    </button>
+                    <div class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+                </div>
+            </div> -->
+
+            <!-- DRINK -->
+            <!-- <div class="category-card bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm dark:shadow-none" data-aos="fade-left" data-aos-once="true" data-aos-offset="0">
+                <div class="flex items-center gap-4 px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-800/80 dark:to-gray-800/50">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">🍹</div>
+                    <div class="flex flex-col" style="gap:2px">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white" style="font-family:'Cormorant Garamond',serif;line-height:1.2;margin:0;">Drink</h2>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 font-medium" style="line-height:1.2;margin:0;">12 items available</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full">Beverage</span>
+                    </div>
+                </div>
+                <div id="pasta-grid" class="grid gap-4 p-6" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/736x/9e/3d/17/9e3d17c2834a10252be3e21dda6d7b21.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Passion fruit iced tea</p><p class="text-sm font-bold text-blue-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/736x/f5/16/01/f5160188df834c429c1f4520d7b8aac9.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Strawberries & Cream Frappuccino</p><p class="text-sm font-bold text-blue-500 mt-1">$4.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/1200x/91/f6/21/91f6215417e9fd1c24703b8b8a4cc1d9.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Iced Matcha Latte</p><p class="text-sm font-bold text-blue-500 mt-1">$3.50</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/1200x/dc/29/eb/dc29ebaddf765f249e2050dd849bfadf.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Lemon iced tea</p><p class="text-sm font-bold text-blue-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/cb/48/db/cb48db04009801523739569e0f33cfc3.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Ice Americano</p><p class="text-sm font-bold text-blue-500 mt-1">$4.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/70/22/c0/7022c089c54a2b079c4000dde2b04200.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Sugarcane juice</p><p class="text-sm font-bold text-blue-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/dc/5e/87/dc5e8715eef8a7ea7c6776a820c50082.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Blueberry yogurt</p><p class="text-sm font-bold text-blue-500 mt-1">$3.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/9d/e8/f0/9de8f042c9e11c35939db2398d72bc45.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Watermelon Slushie</p><p class="text-sm font-bold text-blue-500 mt-1">$2.50</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/d9/77/4c/d9774cc3335eec3cf0878383a39b4e95.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Tropical Pineapple Mocktail</p><p class="text-sm font-bold text-blue-500 mt-1">$3.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/5f/b2/b7/5fb2b752398f7319f1df8a8ab4335573.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Coca-Cola</p><p class="text-sm font-bold text-blue-500 mt-1">$1.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/a6/6a/66/a66a663865787066e6f9058281de6333.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Coconut water</p><p class="text-sm font-bold text-blue-500 mt-1">$1.50</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/1d/cf/72/1dcf72fca6d5a4f44cc8fa3501bcd575.jpg" alt="drink" class="w-full aspect-video object-contain bg-blue-50 dark:bg-gray-700"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">Brown Sugar</p><p class="text-sm font-bold text-blue-500 mt-1">$3.00</p></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 px-6 pb-5">
+                    <div class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+                    <button onclick="toggleCategory(this, 'pasta-grid')" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-xs font-bold rounded-full px-5 py-2 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                        <span class="label">See all 12 items</span><span class="arrow text-xs">▼</span>
+                    </button>
+                    <div class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+                </div>
+            </div> -->
+
+            <!-- DESSERT -->
+            <!-- <div class="category-card bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm dark:shadow-none" data-aos="fade-right" data-aos-once="true" data-aos-offset="0">
+                <div class="flex items-center gap-4 px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-gray-800/80 dark:to-gray-800/50">
+                    <div class="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">🍰</div>
+                    <div class="flex flex-col" style="gap:2px">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white" style="font-family:'Cormorant Garamond',serif;line-height:1.2;margin:0;">Dessert</h2>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 font-medium" style="line-height:1.2;margin:0;">12 items available</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-300 text-xs font-bold px-3 py-1 rounded-full">Sweet</span>
+                    </div>
+                </div>
+                <div id="drinks-grid" class="grid gap-4 p-6" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/736x/64/7f/7c/647f7c5d33f70cc11af906c6c6990397.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">បង្អៃមបបរត្នោត</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/736x/9f/28/2d/9f282d237e767294256643edd4f8cf52.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">បង្អៃមចេកខ្ទិះ</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/1200x/63/71/92/63719242cc9ea621493a7a7f094c4678.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">សង្យាបាយដំណើបស្វាយ</p><p class="text-sm font-bold text-pink-500 mt-1">$4.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer">
+                        <img src="https://i.pinimg.com/1200x/48/e4/3c/48e43c217280958dd86b94a04e82437e.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">ការ៉េមដូង</p><p class="text-sm font-bold text-pink-500 mt-1">$4.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/ce/f6/73/cef6735bebc0ea2bc7c92f79d241f3d8.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">បង្អៃមលតម្សៅអង្ករ</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/66/2c/68/662c68b8ad6ebaffd815f6849aab3c68.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">នំ Cake</p><p class="text-sm font-bold text-pink-500 mt-1">$3.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/3a/31/96/3a319645ac3108da68d2165354e7812a.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">បង្អៃមគ្រាប់ទទឹម</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/0b/3d/ec/0b3dec16069b2df301ebe7e30db79507.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">ទឹកកកឈូស</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/37/83/93/3783930145a9d3a9c530542cb1d35548.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">នំអាកោត្នោត</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/1200x/7d/7d/ed/7d7dedd9a7d1d23e87984628518d6e5e.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">នំផ្លៃអាយ</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/05/08/9f/05089f90e8df44b4c0734a007dfa58a7.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">ចេកអាំងខ្មៃរ</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                    <div class="product-card bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden cursor-pointer" style="display:none" data-extra>
+                        <img src="https://i.pinimg.com/736x/9d/38/df/9d38dffb98fc1021cd58c6d16c31816e.jpg" alt="dessert" class="w-full aspect-video object-cover"/>
+                        <div class="px-4 py-3"><p class="font-semibold text-sm text-gray-800 dark:text-gray-100">នំចាក់ចុល</p><p class="text-sm font-bold text-pink-500 mt-1">$2.00</p></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 px-6 pb-5">
+                    <div class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+                    <button onclick="toggleCategory(this, 'drinks-grid')" class="flex items-center gap-2 text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-800 text-xs font-bold rounded-full px-5 py-2 hover:bg-pink-500 hover:text-white hover:border-pink-500 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                        <span class="label">See all 12 items</span><span class="arrow text-xs">▼</span>
+                    </button>
+                    <div class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+                </div>
+            </div> -->
+
+        <!-- </div> -->
+
+        <h3 class="flex items-center gap-3 w-full my-4">
+        <span class="w-1.5 h-6 bg-green-500 rounded-full"></span>
+        <span class="text-lg font-bold uppercase tracking-widest text-gray-700 dark:text-white">Food</span>
+        <span class="flex-grow h-px bg-gray-400 dark:bg-gray-600"></span>
+        </h3>
+
+        <section id="Projects"
+    class="w-fit mx-auto grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 justify-items-center justify-center gap-y-10 gap-x-6 mt-10 mb-5">
+
+    <!--   ✅ Product card 1 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/0e/65/b5/0e65b5c620692e057e683e950d9155e1.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">អាម៉ុកសាច់ត្រី</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$7.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 1 - Ends Here  -->
+
+    <!--   ✅ Product card 2 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/6d/43/82/6d4382495c930a0fed1ad94fa5391eb8.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">ប្រហុកអាំងជ្រុញ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$8.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 2- Ends Here  -->
+
+    <!--   ✅ Product card 3 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/7d/85/55/7d8555b48a078b81d8c220574be5d78e.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">នំបញ្ចុកសម្លប្រហើរ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$6.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 3 - Ends Here  -->
+
+    <!--   ✅ Product card 4 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/44/02/c5/4402c5eb72f04058f7d383244c99899c.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Pasta គ្រឿងសមុទ្រ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$9.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 4 - Ends Here  -->
+
+    <!--   ✅ Product card 5 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/2b/67/ad/2b67ad0c4b024d10cda5a5941848dd68.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">ត្រីបំពង់ទឹកត្រីផ្អែម</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$9.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 5 - Ends Here  -->
+
+    <!--   ✅ Product card 6 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/d5/d3/34/d5d334219d673ce92d988dab4516958b.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Steak សាច់គោ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$15.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 6 - Ends Here  -->
+
+    <!--   ✅ Product card 7 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/5d/73/19/5d731959f570b4623ac8801ad7bb497b.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">តុងយុាំបង្កង</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$10.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 7 - Ends Here  -->
+
+    <!--   ✅ Product card 8 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/f6/9d/db/f69ddb7d89b3a70313ef7db21c871b34.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">ម្ជូរគ្រឿងពោះគោ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$7.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 8 - Ends Here  -->
+
+    <!--   ✅ Product card 9 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/f0/81/3d/f0813d77d87d231f59654e7152c7f884.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">មាន់ដុតកូកា</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$12.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 9 - Ends Here  -->
+
+</section><br><br><br>
+    
+
+    <h3 class="flex items-center gap-3 w-full my-4">
+    <span class="w-1.5 h-6 bg-green-500 rounded-full"></span>
+    <span class="text-lg font-bold uppercase tracking-widest text-gray-700 dark:text-white">Drink</span>
+    <span class="flex-grow h-px bg-gray-400 dark:bg-gray-600"></span>
+    </h3>
+
+        <section id="Projects"
+    class="w-fit mx-auto grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 justify-items-center justify-center gap-y-10 gap-x-6 mt-10 mb-5">
+
+    <!--   ✅ Product card 1 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/9e/3d/17/9e3d17c2834a10252be3e21dda6d7b21.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Passion fruit iced tea</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 1 - Ends Here  -->
+
+    <!--   ✅ Product card 2 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/f5/16/01/f5160188df834c429c1f4520d7b8aac9.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Strawberries & Cream Frappuccino</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$4.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 2 - Ends Here  -->
+
+    <!--   ✅ Product card 3 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/91/f6/21/91f6215417e9fd1c24703b8b8a4cc1d9.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Iced Matcha Latte</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$3.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 3 - Ends Here  -->
+
+    <!--   ✅ Product card 4 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/dc/29/eb/dc29ebaddf765f249e2050dd849bfadf.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Lemon iced tea</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 4 - Ends Here  -->
+
+    <!--   ✅ Product card 5 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/cb/48/db/cb48db04009801523739569e0f33cfc3.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Ice Americano</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$4.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 5 - Ends Here  -->
+
+    <!--   ✅ Product card 6 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/70/22/c0/7022c089c54a2b079c4000dde2b04200.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Sugarcane juice</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 6 - Ends Here  -->
+
+    <!--   ✅ Product card 7 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/dc/5e/87/dc5e8715eef8a7ea7c6776a820c50082.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Blueberry yogurt</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$3.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 7 - Ends Here  -->
+
+    <!--   ✅ Product card 8 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/9d/e8/f0/9de8f042c9e11c35939db2398d72bc45.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Watermelon Slushie</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 8 - Ends Here  -->
+
+    <!--   ✅ Product card 9 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/d9/77/4c/d9774cc3335eec3cf0878383a39b4e95.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Tropical Pineapple Mocktail</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$3.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 9 - Ends Here  -->
+
+    <!--   ✅ Product card 10 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/5f/b2/b7/5fb2b752398f7319f1df8a8ab4335573.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Coca-Cola</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$1.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 10 - Ends Here  -->
+
+    <!--   ✅ Product card 11 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/a6/6a/66/a66a663865787066e6f9058281de6333.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Coconut water</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$1.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 11 - Ends Here  -->
+
+    <!--   ✅ Product card 12 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/1d/cf/72/1dcf72fca6d5a4f44cc8fa3501bcd575.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">Brown Sugar</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$3.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 12 - Ends Here  -->
+
+</section><br><br><br>
+    
+
+    <h3 class="flex items-center gap-3 w-full my-4">
+    <span class="w-1.5 h-6 bg-green-500 rounded-full"></span>
+    <span class="text-lg font-bold uppercase tracking-widest text-gray-700 dark:text-white">Dessert</span>
+    <span class="flex-grow h-px bg-gray-400 dark:bg-gray-600"></span>
+    </h3>
+
+        <section id="Projects"
+    class="w-fit mx-auto grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 justify-items-center justify-center gap-y-10 gap-x-6 mt-10 mb-5">
+
+    <!--   ✅ Product card 1 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/64/7f/7c/647f7c5d33f70cc11af906c6c6990397.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">បង្អែមបបរត្នោត</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 1 - Ends Here  -->
+
+    <!--   ✅ Product card 2 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/9f/28/2d/9f282d237e767294256643edd4f8cf52.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">បង្អែមចេកខ្ទិះ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 2 - Ends Here  -->
+
+    <!--   ✅ Product card 3 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/63/71/92/63719242cc9ea621493a7a7f094c4678.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">សង្យាបាយដំណើបស្វាយ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$4.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 3 - Ends Here  -->
+
+    <!--   ✅ Product card 4 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/48/e4/3c/48e43c217280958dd86b94a04e82437e.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">ការ៉េមដូង</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$4.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 4 - Ends Here  -->
+
+    <!--   ✅ Product card 5 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/ce/f6/73/cef6735bebc0ea2bc7c92f79d241f3d8.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">បង្អែមលតម្សៅអង្ករ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 5 - Ends Here  -->
+
+    <!--   ✅ Product card 6 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/66/2c/68/662c68b8ad6ebaffd815f6849aab3c68.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">នំ Cake</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$3.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 6 - Ends Here  -->
+
+    <!--   ✅ Product card 7 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/3a/31/96/3a319645ac3108da68d2165354e7812a.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">បង្អែមគ្រាប់ទទឹម</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 7 - Ends Here  -->
+
+    <!--   ✅ Product card 8 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/0b/3d/ec/0b3dec16069b2df301ebe7e30db79507.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">ទឹកកកឈូស</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 8 - Ends Here  -->
+
+    <!--   ✅ Product card 9 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="0">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/37/83/93/3783930145a9d3a9c530542cb1d35548.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">នំអាកោត្នោត</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$4.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 9 - Ends Here  -->
+
+    <!--   ✅ Product card 10 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+        <a href="#">
+            <img src="https://i.pinimg.com/1200x/7d/7d/ed/7d7dedd9a7d1d23e87984628518d6e5e.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">នំផ្លែអាយ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 10 - Ends Here  -->
+
+    <!--   ✅ Product card 11 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/05/08/9f/05089f90e8df44b4c0734a007dfa58a7.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">ចេកអាំងខ្មៃរ</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.00</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 11 - Ends Here  -->
+
+    <!--   ✅ Product card 12 - Starts Here 👇 -->
+    <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+        <a href="#">
+            <img src="https://i.pinimg.com/736x/9d/38/df/9d38dffb98fc1021cd58c6d16c31816e.jpg"
+                    alt="Product" class="h-80 w-72 object-cover rounded-t-xl" />
+            <div class="px-4 py-3 w-72">
+                <span class="text-gray-400 mr-3 uppercase text-xs">MALUB</span>
+                <p class="text-lg font-bold text-black truncate block capitalize">នំចាក់ចុល</p>
+                <div class="flex items-center">
+                    <p class="text-lg font-semibold text-black cursor-auto my-3">$2.50</p>
+                    <div class="ml-auto"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            fill="currentColor" class="bi bi-bag-plus" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z" />
+                        </svg></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--   🛑 Product card 12 - Ends Here  -->
+
+</section>
+    </section>
+    </section>
+    </section>
+
+    <!-- Review -->
+    <section class="bg-green-100 dark:bg-gray-950 py-20 px-4 transition-colors duration-300">
+        <div class="text-center mb-16" data-aos="zoom-in-down">
+            <span class="inline-block bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold px-4 py-2 rounded-full border border-green-200 dark:border-green-700 mb-4 tracking-widest uppercase">Ratings & Reviews</span>
+            <h1 class="text-6xl sm:text-7xl lg:text-8xl font-black text-gray-900 dark:text-white tracking-tight">Guest <span class="text-green-600 dark:text-green-400 italic" style="font-family:'Cormorant Garamond',serif">Feedback</span></h1>
+            <p class="text-gray-400 dark:text-gray-500 font-light mt-3 text-sm tracking-wide">Every star tells a story of a memorable dining experience shared by our valued guests.</p>
+        </div>
+        <div class="max-w-5xl mx-auto">
+
+        <!-- User Header -->
+        <!-- <div class="bg-white rounded-2xl shadow-sm p-5 mb-5 animate-slide-up">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md">JD</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Welcome, John!</h2>
+                        <p class="text-sm text-gray-500">john@example.com</p>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1.5">
+                            <i class="fas fa-check-circle"></i> Member since Today
+                        </span>
+                    </div>
+                </div>
+                <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </div> -->
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- Left Column -->
+            <div data-aos="fade-right" class="lg:col-span-2 space-y-5">
+
+                <!-- Rate Your Visit -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 animate-slide-up" style="animation-delay:0.1s">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-star text-yellow-400"></i> Rate Your Visit
+                        </h3>
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full" id="dash-date">Thu, Apr 9</span>
+                    </div>
+
+                    <!-- NO onsubmit on form -->
+                    <form>
+                        <div class="text-center py-4 mb-4">
+                            <p class="text-sm text-gray-600 mb-3">How was your experience on
+                                <span id="visit-date" class="font-semibold text-green-600">April 9</span>?
+                            </p>
+                            <div class="star-rating">
+                                <input type="radio" id="star5" name="rating" value="5"><label for="star5"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star4" name="rating" value="4"><label for="star4"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star3" name="rating" value="3"><label for="star3"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star2" name="rating" value="2"><label for="star2"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star1" name="rating" value="1"><label for="star1"><i class="fas fa-star"></i></label>
+                            </div>
+                            <p id="rating-label" class="text-sm font-medium text-gray-500 mt-2">Click to rate</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Your Review</label>
+                            <textarea id="review-text" rows="3" class="form-input resize-none" placeholder="Share your dining experience..." maxlength="500"></textarea>
+                            <div class="flex justify-between mt-1.5">
+                                <span class="text-xs text-gray-400">Min. 10 characters</span>
+                                <span class="text-xs text-gray-400" id="char-count">0/500</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <!-- FIX: type="button" prevents page refresh -->
+                            <button type="button" onclick="submitReview()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                                <i class="fas fa-paper-plane"></i> Submit
+                            </button>
+                            <button type="button" onclick="clearReview()" class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                Clear
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Your Reviews -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 animate-slide-up" style="animation-delay:0.2s">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-history text-green-500"></i> Your Reviews
+                    </h3>
+                    <div id="reviews-list" class="space-y-3">
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-comment-slash text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">No reviews yet. Share your first experience!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div data-aos="fade-left" class="space-y-5 self-start order-1 lg:order-2">
+ 
+                <!-- Your Stats -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 animate-slide-up" style="animation-delay:0.3s">
+                    <h3 class="text-base font-bold text-gray-900 mb-3">Your Stats</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-xl">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-star text-yellow-500"></i>
+                                <span class="text-sm font-medium text-gray-700">Avg Rating</span>
+                            </div>
+                            <span class="text-lg font-bold text-yellow-600" id="stat-avg">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-comment text-blue-500"></i>
+                                <span class="text-sm font-medium text-gray-700">Reviews</span>
+                            </div>
+                            <span class="text-lg font-bold text-blue-600" id="stat-count">0</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-check text-purple-500"></i>
+                                <span class="text-sm font-medium text-gray-700">Visits</span>
+                            </div>
+                            <span class="text-lg font-bold text-purple-600">1</span>
+                        </div>
+                    </div>
+                </div>
+ 
+                <!-- Quick Actions -->
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-sm p-5 text-white animate-slide-up" style="animation-delay:0.4s">
+                    <h3 class="text-base font-bold mb-3">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <button type="button" class="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm font-medium flex items-center gap-2">
+                            <a href="./services.html"><i class="fas fa-utensils"></i> Book a Table</a>
+                        </button>
+                        <button type="button" class="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm font-medium flex items-center gap-2">
+                            <a href="./menuPage.html"><i class="fas fa-gift"></i> Explore Menu</a>
+                        </button>
+                        <button type="button" class="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm font-medium flex items-center gap-2">
+                            <a href="./aboutPage.html"><i class="fas fa-share-alt"></i> About Us</a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast">
+        <i id="toast-icon" class="fas fa-check-circle text-green-400"></i>
+        <span id="toast-message">Success!</span>
+    </div>
+    </section>
+
+    <!-- ── FOOTER ── -->
+    <footer class="bg-green-800 dark:bg-gray-900 border-t border-green-700 dark:border-gray-800 text-white transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-14">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+
+                <!-- Logo -->
+                <div class="flex flex-col items-center sm:items-start text-center sm:text-left">
+                    <div class="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-lg">
+                        <img src="../../asset/logo_malub-removebg-preview.png" alt="MALUB Logo" class="w-16 h-16 object-contain">
+                    </div>
+                    <p class="font-black text-lg text-white mb-1">MALUB</p>
+                    <p class="text-green-300 dark:text-gray-400 text-sm mb-4">Restaurant</p>
+                    <div class="flex gap-2 flex-wrap justify-center sm:justify-start">
+                        <a href="#" class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center hover:scale-110 transition-all">
+                            <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-xl bg-black hover:bg-gray-800 flex items-center justify-center hover:scale-110 transition-all">
+                            <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.17 8.17 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-xl bg-sky-500 hover:bg-sky-400 flex items-center justify-center hover:scale-110 transition-all">
+                            <i class="fa-brands fa-telegram text-white text-sm"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-xl flex items-center justify-center hover:scale-110 transition-all" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">
+                            <i class="fa-brands fa-instagram text-white text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Explore -->
+                <div>
+                    <h3 class="font-bold text-xs tracking-widest uppercase mb-5 text-green-300 dark:text-gray-400">Explore</h3>
+                    <ul class="space-y-3 text-sm text-green-100 dark:text-gray-300">
+                        <li><a href="./homePage.html" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-200">Home</a></li>
+                        <li><a href="./menuPage.html" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-200">Menu</a></li>
+                        <li><a href="./aboutPage.html" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-200">About Us</a></li>
+                        <li><a href="./services.html" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-200">Services</a></li>
+                        <li><a href="./contactPage.html" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-200">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <h3 class="font-bold text-xs tracking-widest uppercase mb-5 text-green-300 dark:text-gray-400">Address & Contacts</h3>
+                    <p class="text-sm leading-relaxed mb-5 text-green-100 dark:text-gray-300">
+                        No. 40, Street 273,<br>Sangkat Boeung Kak I,<br>Khan Toul Kork,<br>Phnom Penh, Cambodia
+                    </p>
+                    <ul class="space-y-2 text-sm text-green-100 dark:text-gray-300">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-green-400 text-xs"></i> (+855) 17-928-998</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-green-400 text-xs"></i> (+855) 86-243-016</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-green-400 text-xs"></i> (+855) 97-297-7674</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-green-400 text-xs"></i> (+855) 69-298-825</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-green-400 text-xs"></i> (+855) 96-673-3867</li>
+                    </ul>
+                </div>
+
+                <!-- Follow -->
+                <div>
+                    <h3 class="font-bold text-xs tracking-widest uppercase mb-5 text-green-300 dark:text-gray-400">Follow Us</h3>
+                    <div class="bg-white/10 dark:bg-gray-800 backdrop-blur rounded-2xl p-4 flex items-center gap-3 border border-white/10 dark:border-gray-700">
+                        <img src="../../asset/logo_malub-removebg-preview.png" alt="MALUB" class="w-12 h-12 rounded-xl border-2 border-green-400 flex-shrink-0 bg-white p-1">
+                        <div>
+                            <p class="font-bold text-sm text-white">MALUB Restaurant</p>
+                            <p class="text-xs text-green-300 dark:text-gray-400 mb-2">Follow us on Facebook</p>
+                            <button class="text-xs text-white bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-full flex items-center gap-1 transition-colors font-semibold">
+                                <i class="fa-brands fa-facebook text-xs"></i> Follow
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="border-t border-green-700 dark:border-gray-800 py-5 px-6 text-center text-sm text-green-300 dark:text-gray-500">
+            © 2026 MALUB Restaurant — All Rights Reserved
+        </div>
+    </footer>
+
+    <!-- ── SCRIPTS ── -->
+    <script>
+        // ── Dark Mode ──
+        var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyDark(isDark);
+
+        function applyDark(dark) {
+            isDark = dark;
+            if (dark) {
+                document.documentElement.classList.add('dark');
+                document.documentElement.classList.remove('light');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+            }
+            var icon = dark ? '🌙' : '☀️';
+            var i1 = document.getElementById('toggleIcon');
+            var i2 = document.getElementById('toggleIconMobile');
+            if (i1) i1.textContent = icon;
+            if (i2) i2.textContent = icon;
+        }
+
+        function toggleDark() {
+            applyDark(!isDark);
+        }
+
+        // ── Mobile Menu ──
+        window.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('mobileMenuButton');
+            var menu = document.getElementById('mobileMenu');
+            var isOpen = false;
+
+            if (btn && menu) {
+                btn.addEventListener('click', function() {
+                    isOpen = !isOpen;
+                    btn.classList.toggle('ham-open', isOpen);
+                    menu.classList.toggle('open', isOpen);
+                });
+            }
+
+            // Nav link animations
+            document.querySelectorAll('.nav-link').forEach(function(link, i) {
+                link.classList.add('animate-fade-in');
+                link.style.animationDelay = (i * 0.08) + 's';
+            });
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (isOpen && !btn.contains(e.target) && !menu.contains(e.target)) {
+                    isOpen = false;
+                    btn.classList.remove('ham-open');
+                    menu.classList.remove('open');
+                }
+            });
+        });
+
+        // ── Category Toggle ──
+        function toggleCategory(btn, gridId) {
+            var grid = document.getElementById(gridId);
+            var extras = grid.querySelectorAll('[data-extra]');
+            var open = btn.getAttribute('data-open') === 'true';
+            var label = btn.querySelector('.label');
+            var arrow = btn.querySelector('.arrow');
+            var total = grid.querySelectorAll('.product-card').length;
+
+            for (var i = 0; i < extras.length; i++) {
+                extras[i].style.display = open ? 'none' : 'block';
+            }
+            btn.setAttribute('data-open', open ? 'false' : 'true');
+            arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+            label.textContent = open ? 'See all ' + total + ' items' : 'Show less';
+        }
+    </script>
+
+    <!-- Review -->
+    <script>
+        let reviews = [];
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-US', options);
+            document.getElementById('visit-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+            const labels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+            document.querySelectorAll('.star-rating input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const lbl = document.getElementById('rating-label');
+                    lbl.textContent = labels[e.target.value - 1];
+                    lbl.className = 'text-sm font-medium text-green-600 mt-2';
+                });
+            });
+
+            document.getElementById('review-text').addEventListener('input', (e) => {
+                document.getElementById('char-count').textContent = `${e.target.value.length}/500`;
+            });
+        });
+
+        // Submit review - no event parameter needed since button is type="button"
+        function submitReview() {
+            const rating = document.querySelector('input[name="rating"]:checked');
+            const text = document.getElementById('review-text').value;
+
+            if (!rating) { showToast('Please select a rating', 'error'); return; }
+            if (text.length < 10) { showToast('Please write at least 10 characters', 'error'); return; }
+
+            reviews.unshift({
+                id: Date.now(),
+                rating: parseInt(rating.value),
+                text,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            });
+
+            renderReviews();
+            updateStats();
+            clearReview();
+            showToast('Review submitted!', 'success');
+        }
+
+        function renderReviews() {
+            const container = document.getElementById('reviews-list');
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-comment-slash text-3xl mb-2 opacity-50"></i>
+                        <p class="text-sm">No reviews yet. Share your first experience!</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = reviews.map(r => `
+                <div class="review-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex gap-1 text-yellow-400 text-sm">
+                            ${Array(5).fill(0).map((_, i) => `<i class="${i < r.rating ? 'fas' : 'far'} fa-star"></i>`).join('')}
+                        </div>
+                        <span class="text-xs text-gray-400">${r.date}</span>
+                    </div>
+                    <p class="text-sm text-gray-700 leading-relaxed">${r.text}</p>
+                    <div class="mt-2 flex gap-3 text-xs">
+                        <button type="button" class="text-gray-400 hover:text-green-500 transition"><i class="far fa-thumbs-up"></i> Helpful</button>
+                        <button type="button" onclick="deleteReview(${r.id})" class="text-gray-400 hover:text-red-500 transition"><i class="far fa-trash-alt"></i> Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const count = reviews.length;
+            const avg = count > 0 ? (reviews.reduce((a, b) => a + b.rating, 0) / count).toFixed(1) : '-';
+            document.getElementById('stat-count').textContent = count;
+            document.getElementById('stat-avg').textContent = avg;
+        }
+
+        function deleteReview(id) {
+            reviews = reviews.filter(r => r.id !== id);
+            renderReviews();
+            updateStats();
+            showToast('Review deleted', 'success');
+        }
+
+        function clearReview() {
+            document.querySelectorAll('.star-rating input').forEach(i => i.checked = false);
+            document.getElementById('review-text').value = '';
+            document.getElementById('char-count').textContent = '0/500';
+            const lbl = document.getElementById('rating-label');
+            lbl.textContent = 'Click to rate';
+            lbl.className = 'text-sm font-medium text-gray-500 mt-2';
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+            document.getElementById('toast-icon').className = type === 'success'
+                ? 'fas fa-check-circle text-green-400'
+                : 'fas fa-exclamation-circle text-red-400';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+
+    <!-- ah carousel khang lerr hor -->
+    <script>
+    let cur=0,total=3,timer;
+    function goTo(n){
+      document.querySelectorAll('.carousel-slide').forEach((s,i)=>{
+        s.style.opacity = i===n ? '1' : '0';
+        s.style.zIndex = i===n ? '1' : '0';
+      });
+      document.querySelectorAll('.carousel-dot').forEach((d,i)=>{
+        d.style.width = i===n ? '40px' : '28px';
+        d.style.background = i===n ? '#16a34a' : '#86efac';
+      });
+      document.getElementById('pgbar').style.width=((n+1)/total*100)+'%';
+      cur=n; reset();
+    }
+    function move(d){goTo((cur+d+total)%total);}
+    function reset(){clearInterval(timer);timer=setInterval(()=>move(1),5000);}
+    reset();
+  </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            AOS.init({ offset: 0, once: true, duration: 800 });
+        });
+    </script>
+</body>
+</html>
